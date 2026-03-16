@@ -441,7 +441,7 @@ export default function App() {
                   ))}
                 </div>
                 {open && (
-                  <div>
+                  <div onClick={e => e.stopPropagation()}>
                     <div style={c.tipText}>💡 {ex.tip}</div>
                     <div style={{marginTop:10}}>
                       <div style={{display:"flex",gap:4,marginBottom:6,alignItems:"center"}}>
@@ -455,31 +455,23 @@ export default function App() {
                         const sv = s.savedWeights[ik];
                         const rk = `${s.currentWeek}-${selectedWorkoutKey}-${ei}-${si}-reps`;
                         const sr = s.savedWeights[rk];
-                        // PB detection — compare to same set last week
                         const prevWk = `${s.currentWeek-1}-${selectedWorkoutKey}-${ei}-${si}`;
                         const prevWeight = s.savedWeights[prevWk];
                         const isPB = sv && prevWeight && parseFloat(sv) > parseFloat(prevWeight);
                         return (
-                          <div key={si} style={{...c.wRow, alignItems:"center", gap:4, marginBottom:6}}>
+                          <div key={si} style={{...c.wRow, alignItems:"center", gap:4, marginBottom:6}} onClick={e => e.stopPropagation()}>
                             <span style={{fontSize:11,color:"#555",width:48,flexShrink:0}}>S{si+1}{isPB ? " 🏆" : ""}</span>
                             <input style={{...c.wIn, flex:1, width:"auto"}} type="number" inputMode="decimal" placeholder={prevWeight || "kg"}
                               value={s.weightInputs[ik] || ""}
-                              onChange={e => update({weightInputs: {...s.weightInputs, [ik]: e.target.value}})}/>
+                              onClick={e => e.stopPropagation()}
+                              onChange={e => { e.stopPropagation(); update({weightInputs: {...s.weightInputs, [ik]: e.target.value}}); }}/>
                             <input style={{...c.wIn, flex:1, width:"auto"}} type="number" inputMode="numeric" placeholder="reps"
                               value={s.weightInputs[rk] || ""}
-                              onChange={e => update({weightInputs: {...s.weightInputs, [rk]: e.target.value}})}/>
-                            <button style={c.saveBtn} onClick={() => {
-                              const wVal = s.weightInputs[ik];
-                              const rVal = s.weightInputs[rk];
-                              const newSaved = {...s.savedWeights};
-                              if (wVal) newSaved[ik] = wVal;
-                              if (rVal) newSaved[rk] = rVal;
-                              update({savedWeights: newSaved});
-                            }}>✓</button>
+                              onClick={e => e.stopPropagation()}
+                              onChange={e => { e.stopPropagation(); update({weightInputs: {...s.weightInputs, [rk]: e.target.value}}); }}/>
                           </div>
                         );
                       })}
-                      {/* Previous week reference */}
                       {s.currentWeek > 1 && (() => {
                         const prevEntries = Array.from({length:ex.sets}, (_,si) => {
                           const pk = `${s.currentWeek-1}-${selectedWorkoutKey}-${ei}-${si}`;
@@ -574,8 +566,9 @@ export default function App() {
           </div>
         )}
 
-        {pct === 100 && (
-          <div style={{margin:"0 18px 14px"}}>
+        {/* Progress photo — always visible when in workout */}
+        <div style={{margin:"0 18px 14px"}}>
+          {pct === 100 && (
             <div style={{background:"#0a0e0a",border:"1px solid #10B98133",borderRadius:10,padding:"12px 14px",marginBottom:10}}>
               <div style={{fontSize:12,fontWeight:700,color:"#10B981",marginBottom:4}}>📸 Log a Progress Photo</div>
               <div style={{fontSize:11,color:"#666",marginBottom:10,lineHeight:1.5}}>Optional — snap a quick mirror pic to track your transformation. Front, side or back.</div>
@@ -602,9 +595,12 @@ export default function App() {
                 }}/>
               </label>
             </div>
-            <button style={c.finBtn} onClick={finishWorkout}>✅ Complete Workout</button>
-          </div>
-        )}
+          )}
+          <button style={{...c.finBtn, background: pct === 100 ? "#10B981" : "#1a1a1a", color: pct === 100 ? "#000" : "#555", border: pct === 100 ? "none" : "1px solid #2a2a2a"}}
+            onClick={finishWorkout}>
+            {pct === 100 ? "✅ Complete Workout" : `Complete Workout (${pct}% done)`}
+          </button>
+        </div>
         <div style={{height:40}}/>
       </div>
     );
